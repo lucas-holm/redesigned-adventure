@@ -4,92 +4,92 @@
 name: Build and deploy ASP.Net Core app to Azure Web App - viteaspnet
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: viteaspnet    # set this to your application's name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '14.x'  
+    AZURE_WEBAPP_NAME: viteaspnet # set this to your application's name
+    AZURE_WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
+    NODE_VERSION: "14.x"
 
 jobs:
-  build:
-    runs-on: windows-latest
+    build:
+        runs-on: windows-latest
 
-    steps:
-      - uses: actions/checkout@v2
+        steps:
+            - uses: actions/checkout@v2
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0.x'
-          include-prerelease: true
+            - name: Set up .NET Core
+              uses: actions/setup-dotnet@v1
+              with:
+                  dotnet-version: "6.0.x"
+                  include-prerelease: true
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+            - name: Build with dotnet
+              run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+            - name: dotnet publish
+              run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
-        with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+            - name: Upload artifact for deployment job
+              uses: actions/upload-artifact@v2
+              with:
+                  name: .net-app
+                  path: ${{env.DOTNET_ROOT}}/myapp
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+                  cache-dependency-path: "**/package-lock.json"
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-        working-directory: AzureWebApp/ClientApp
+            - name: npm install, build, and test
+              run: |
+                  npm install
+                  npm run build --if-present
+                  npm run test --if-present
+              working-directory: AzureWebApp/ClientApp
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
-        with:
-          name: node-app
-          path: .
+            - name: Upload artifact for deployment job
+              uses: actions/upload-artifact@v2
+              with:
+                  name: node-app
+                  path: AzureWebApp/ClientApp/dist
 
-  deploy:
-    runs-on: windows-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    deploy:
+        runs-on: windows-latest
+        needs: build
+        environment:
+            name: "Production"
+            url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: .net-app
+        steps:
+            - name: Download artifact from build job
+              uses: actions/download-artifact@v2
+              with:
+                  name: .net-app
 
-      - name: Deploy to Azure Web App
-        id: deploy-dotnet-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'viteaspnet'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_954A097ACD53491199417F881742658B }}
-          package: .
+            - name: Deploy to Azure Web App
+              id: deploy-dotnet-to-webapp
+              uses: azure/webapps-deploy@v2
+              with:
+                  app-name: "viteaspnet"
+                  slot-name: "Production"
+                  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_954A097ACD53491199417F881742658B }}
+                  package: .
 
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: node-app
+            - name: Download artifact from build job
+              uses: actions/download-artifact@v2
+              with:
+                  name: node-app
 
-      - name: 'Deploy to Azure WebApp'
-        id: deploy-vue-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_954A097ACD53491199417F881742658B }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+            - name: "Deploy to Azure WebApp"
+              id: deploy-vue-to-webapp
+              uses: azure/webapps-deploy@v2
+              with:
+                  app-name: ${{ env.AZURE_WEBAPP_NAME }}
+                  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_954A097ACD53491199417F881742658B }}
+                  package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

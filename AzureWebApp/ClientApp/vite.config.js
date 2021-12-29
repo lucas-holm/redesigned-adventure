@@ -13,6 +13,6 @@ export default defineConfig({
         },
     },
     build: {
-        outDir: "wwwroot/dist",
+        outDir: "dist/wwwroot",
     },
 });
