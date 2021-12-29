@@ -25,7 +25,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: viteaspnet    # set this to your application's name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  AZURE_WEBAPP_PACKAGE_PATH: 'ClientApp'      # set this to the path to your web app project, defaults to the repository root
   NODE_VERSION: '14.x'                # set this to the node version to use
 
 jobs:
@@ -45,7 +45,6 @@ jobs:
         npm install
         npm run build --if-present
         npm run test --if-present
-      working-directory: ClientApp
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v2
